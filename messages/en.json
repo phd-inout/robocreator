@@ -1,0 +1,14 @@
+{
+  "HomePage": {
+    "title": "Welcome to Robo-Creator",
+    "description": "Start designing your robot now."
+  },
+  "EditorPage": {
+    "tools": "Components",
+    "sidebar_desc": "Drag components to the right to start designing",
+    "status_ok": "Validation Passed",
+    "status_error": "Validation Failed",
+    "export": "Export Report",
+    "add_component": "Add Component"
+  }
+}

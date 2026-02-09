@@ -1,0 +1,14 @@
+{
+    "HomePage": {
+        "title": "欢迎来到 Robo-Creator",
+        "description": "立即开始设计您的机器人。"
+    },
+    "EditorPage": {
+        "tools": "组件库",
+        "sidebar_desc": "拖拽组件到右侧区域开始设计",
+        "status_ok": "系统校验通过",
+        "status_error": "系统校验失败",
+        "export": "导出报告",
+        "add_component": "添加组件"
+    }
+}

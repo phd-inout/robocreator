@@ -9,7 +9,6 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-
 model User {
   id        String    @id
   email     String    @unique
@@ -20,14 +19,35 @@ model User {
 }
 
 model Component {
-  id        String   @id @default(cuid())
-  name      Json     // i18n name {en: "...", zh: "..."}
-  type      String   // e.g., "chassis", "lidar"
-  specs     Json     // Physical parameters (JSONB)
-  modelUrl  String   // URL to 3D model
-  thumbnail String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String    @id @default(cuid())
+  sku         String    @unique
+  category    Category
+
+  // i18n ready fields
+  name        Json      // { "zh": "...", "en": "..." }
+  description Json?
+
+  // Physical specs
+  specs       Json
+  
+  modelRef    String
+  thumbnail   String?
+  priceList   Decimal   @db.Decimal(10, 2)
+  
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([category])
+}
+
+enum Category {
+  CHASSIS
+  SENSOR
+  ACTUATOR
+  BATTERY
+  COMPUTE
+  ACCESSORY
 }
 
 model Project {

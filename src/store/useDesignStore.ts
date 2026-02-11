@@ -32,5 +32,11 @@ export const useDesignStore = create<DesignState>()(
             set((state) => {
                 state.selectedPartId = id;
             }),
+
+        transformMode: "translate",
+        setTransformMode: (mode) =>
+            set((state) => {
+                state.transformMode = mode;
+            }),
     }))
 );

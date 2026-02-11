@@ -8,10 +8,13 @@ export default function StoreTest() {
     const handleAdd = () => {
         addPart({
             id: "part-" + Date.now(),
-            type: "box",
+            skuId: "TEST-SKU",
+            name: { en: "Test Part", zh: "测试组件" },
+            category: "CHASSIS",
             position: { x: Math.random() * 10, y: 0, z: 0 },
             rotation: { x: 0, y: 0, z: 0 },
-            specs: {},
+            specs: { weight: 10, dims: [1, 1, 1] },
+            price: 100,
         });
     };
 

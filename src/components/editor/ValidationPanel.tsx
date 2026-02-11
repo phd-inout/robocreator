@@ -8,27 +8,27 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { calculatePhysics } from "@/lib/physics";
 
 export default function ValidationPanel() {
     const t = useTranslations("EditorPage");
-    const { parts } = useDesignStore();
+    const { parts, requirements } = useDesignStore();
 
-    // Calculate total weight and cost
+    // Calculate physics in real-time
+    const physics = useMemo(() => {
+        return calculatePhysics(parts, requirements);
+    }, [parts, requirements]);
+
     const stats = useMemo(() => {
-        const totalWeight = parts.reduce((sum, part) => sum + (part.specs.weight || 0), 0);
-        const totalCost = parts.reduce((sum, part) => {
-            return sum + (part.price || 0);
-        }, 0);
-
+        const totalCost = parts.reduce((sum, part) => sum + (part.price || 0), 0);
         return {
-            weight: totalWeight.toFixed(2),
+            weight: physics.totalWeight.toFixed(2),
             cost: totalCost,
             partCount: parts.length,
         };
-    }, [parts]);
+    }, [parts, physics]);
 
-    // Mock validation status
-    const isValid = true;
+    const isValid = physics.isValid;
 
     return (
         <ScrollArea className="h-full">
@@ -61,7 +61,10 @@ export default function ValidationPanel() {
                                     {isValid ? t("physics_check_passed") : t("physics_check_failed")}
                                 </h4>
                                 <p className="text-sm text-muted-foreground mt-1">
-                                    {isValid ? t("model_stable") : t("model_unstable")}
+                                    {isValid
+                                        ? t("model_stable")
+                                        : physics.errors.map(err => t(`errors.${err}`)).join(", ")
+                                    }
                                 </p>
                             </div>
                         </div>

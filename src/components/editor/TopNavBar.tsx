@@ -1,64 +1,84 @@
 "use client";
 
 import { useTranslations, useLocale } from "next-intl";
-import { FileText, Globe, Upload } from "lucide-react";
-import Link from "next/link";
+import { Link, usePathname, useRouter } from "@/i18n/routing";
+import { UserButton } from "@clerk/nextjs";
+import { Box, Globe, Download, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import {
+    Breadcrumb,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbList,
+    BreadcrumbPage,
+    BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 export default function TopNavBar() {
     const t = useTranslations("EditorPage");
+    const tHome = useTranslations("HomePage");
     const locale = useLocale();
+    const router = useRouter();
+    const pathname = usePathname();
+
+    const toggleLanguage = () => {
+        const nextLocale = locale === "en" ? "zh" : "en";
+        router.replace(pathname, { locale: nextLocale });
+    };
 
     return (
-        <header className="h-14 bg-background border-b flex items-center justify-between px-6 shadow-sm">
-            {/* Left - Logo & Breadcrumb */}
-            <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                        <span className="text-primary-foreground font-bold text-sm">R</span>
+        <header className="h-16 border-b bg-background flex items-center justify-between px-4 shadow-sm z-30 relative">
+            {/* Left: Logo & Breadcrumb */}
+            <div className="flex items-center gap-6">
+                <Link href="/dashboard" className="flex items-center gap-2 font-bold text-xl text-primary hover:opacity-80 transition-opacity">
+                    <div className="bg-primary text-primary-foreground p-1 rounded">
+                        <Box size={20} />
                     </div>
-                    <span className="font-bold text-foreground">Robo-Creator</span>
-                </div>
+                    <span>Robo-Creator</span>
+                </Link>
 
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Button variant="link" className="p-0 h-auto font-normal text-muted-foreground hover:text-primary" asChild>
-                        <Link href={`/${locale}`}>
-                            {t("projects")}
-                        </Link>
-                    </Button>
-                    <span>/</span>
-                    <span className="text-muted-foreground/50">{t("current_project")}</span>
-                    <span>/</span>
-                    <span className="font-medium text-foreground">{t("main_assembly")}</span>
-                </div>
+                <div className="h-6 w-px bg-border" />
+
+                <Breadcrumb>
+                    <BreadcrumbList>
+                        <BreadcrumbItem>
+                            <BreadcrumbLink href="/dashboard">Projects</BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem>
+                            <BreadcrumbLink href="/dashboard">Mars Rover V2</BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem>
+                            <BreadcrumbPage className="font-semibold">Main Assembly</BreadcrumbPage>
+                        </BreadcrumbItem>
+                    </BreadcrumbList>
+                </Breadcrumb>
             </div>
 
-            {/* Center - Auto-save Status */}
-            <div className="flex items-center gap-2 text-sm">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-muted-foreground">{t("auto_saved")}</span>
-            </div>
-
-            {/* Right - Actions */}
+            {/* Right: Controls */}
             <div className="flex items-center gap-3">
-                <Button variant="ghost" size="sm" className="gap-2">
+                <Badge variant="secondary" className="gap-1.5 py-1.5 px-3 bg-green-50 text-green-700 hover:bg-green-100 border-green-200">
+                    <CheckCircle2 size={14} />
+                    {t("auto_saved")}
+                </Badge>
+
+                <div className="h-6 w-px bg-border mx-1" />
+
+                <Button variant="ghost" size="sm" onClick={toggleLanguage} className="gap-2">
                     <Globe size={16} />
-                    <span>{locale === "zh" ? "中文" : "English"}</span>
+                    {locale === "en" ? "English" : "中文"}
                 </Button>
 
-                <Button size="sm" className="gap-2">
-                    <Upload size={16} />
+                <Button variant="default" size="sm" className="gap-2 bg-blue-600 hover:bg-blue-700">
+                    <Download size={16} />
                     {t("export")}
                 </Button>
 
-                <Separator orientation="vertical" className="h-6" />
-
-                <Avatar className="h-8 w-8 cursor-pointer hover:opacity-80 transition-opacity">
-                    <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-                    <AvatarFallback>U</AvatarFallback>
-                </Avatar>
+                <div className="ml-2">
+                    <UserButton afterSignOutUrl="/" />
+                </div>
             </div>
         </header>
     );

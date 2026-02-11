@@ -6,6 +6,11 @@ export const useDesignStore = create<DesignState>()(
     immer((set) => ({
         parts: [],
         selectedPartId: null,
+        requirements: {
+            slope: 0,
+            environment: "indoor",
+            ground: "smooth"
+        },
 
         addPart: (part: Part) =>
             set((state) => {
@@ -31,6 +36,28 @@ export const useDesignStore = create<DesignState>()(
         selectPart: (id: string | null) =>
             set((state) => {
                 state.selectedPartId = id;
+            }),
+
+        reparentPart: (childId: string, newParentId: string | null) =>
+            set((state) => {
+                if (childId === newParentId) return; // Cannot parent to self
+
+                // Check for circular dependency
+                let current = state.parts.find((p) => p.id === newParentId);
+                while (current) {
+                    if (current.id === childId) {
+                        console.warn("Circular dependency detected");
+                        return;
+                    }
+                    current = state.parts.find((p) => p.id === current?.parentId);
+                }
+
+                const part = state.parts.find((p) => p.id === childId);
+                if (part) {
+                    part.parentId = newParentId || undefined;
+                    // Reset socket compatibility if unparented? Or keep as is?
+                    // For now, simple reparenting.
+                }
             }),
 
         transformMode: "translate",

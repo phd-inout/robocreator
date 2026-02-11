@@ -113,13 +113,28 @@ export default function CanvasArea() {
                 />
 
                 {/* Render Robot Parts */}
-                {parts.map((part) => (
-                    <DraggablePart
-                        key={part.id}
-                        part={part}
-                        onContextMenu={handleContextMenu}
-                    />
-                ))}
+                {/* Render Robot Parts Recursively */}
+                {parts
+                    .filter((p) => !p.parentId) // Start with root parts
+                    .map((rootPart) => {
+                        const renderPart = (partId: string) => {
+                            const part = parts.find((p) => p.id === partId);
+                            if (!part) return null;
+
+                            const children = parts.filter((p) => p.parentId === partId);
+
+                            return (
+                                <DraggablePart
+                                    key={part.id}
+                                    part={part}
+                                    onContextMenu={handleContextMenu}
+                                >
+                                    {children.map((child) => renderPart(child.id))}
+                                </DraggablePart>
+                            );
+                        };
+                        return renderPart(rootPart.id);
+                    })}
             </Canvas>
 
             {/* Context Menu */}

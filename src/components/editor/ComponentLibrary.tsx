@@ -80,9 +80,38 @@ export default function ComponentLibrary({ components }: ComponentLibraryProps) 
         <div className="flex flex-col h-full bg-slate-900 text-white">
             {/* Header */}
             <div className="p-4 border-b border-slate-700 space-y-3">
-                <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                    {t("component_library")}
-                </h2>
+                <div className="flex justify-between items-center">
+                    <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                        {t("component_library")}
+                    </h2>
+                    <label className="cursor-pointer">
+                        <input
+                            type="file"
+                            accept=".glb,.gltf"
+                            className="hidden"
+                            onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+
+                                const url = URL.createObjectURL(file);
+                                addPart({
+                                    id: `custom-${Date.now()}`,
+                                    skuId: "CUSTOM_UPLOAD",
+                                    name: { zh: file.name, en: file.name },
+                                    category: "CUSTOM",
+                                    position: { x: 0, y: 0.5, z: 0 },
+                                    rotation: { x: 0, y: 0, z: 0 },
+                                    specs: { dims: [1, 1, 1], weight: 1, sockets: [], type: 'accessory' },
+                                    modelRef: url,
+                                    price: 0,
+                                });
+                            }}
+                        />
+                        <span className="text-[10px] bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded transition-colors">
+                            + Import GLB
+                        </span>
+                    </label>
+                </div>
 
                 {/* Search */}
                 <div className="relative">

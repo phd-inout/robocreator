@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma";
 import { ComponentSpecs } from "@/types/specs";
 import { LocalizedString } from "@/types/i18n";
+import { FALLBACK_COMPONENTS } from "@/data/fallback";
 
 export interface ComponentData {
     id: string;
@@ -17,6 +18,11 @@ export interface ComponentData {
 }
 
 export async function getComponents(): Promise<ComponentData[]> {
+    console.log("Using Offline Mode for Components");
+    return FALLBACK_COMPONENTS;
+
+    /* 
+    // Temporary Disable DB for Offline Dev
     try {
         const components = await prisma.component.findMany({
             where: {
@@ -35,8 +41,10 @@ export async function getComponents(): Promise<ComponentData[]> {
             thumbnail: c.thumbnail,
             priceList: Number(c.priceList), // Convert Decimal to number for frontend
         }));
+
     } catch (error) {
-        console.error("Failed to fetch components:", error);
-        return [];
+        console.error("Failed to fetch components, using offline fallback:", error);
+        return FALLBACK_COMPONENTS;
     }
+    */
 }

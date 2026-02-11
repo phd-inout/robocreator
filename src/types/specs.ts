@@ -11,6 +11,7 @@ export interface BaseSpecs {
     weight: number; // kg
     dims: [number, number, number]; // [L, W, H] in meters
     sockets?: Socket[];
+    modelFormat?: 'glb' | 'stl' | 'obj' | 'fbx';
 }
 
 export interface ChassisSpecs extends BaseSpecs {

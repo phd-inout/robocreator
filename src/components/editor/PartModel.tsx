@@ -1,37 +1,192 @@
 
 import { useGLTF } from "@react-three/drei";
 import { Part } from "@/types/store";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import * as THREE from "three";
+import { OBJLoader } from "three-stdlib";
+import { STLLoader } from "three-stdlib";
+import { FBXLoader } from "three-stdlib";
+import { GLTFLoader } from "three-stdlib";
 
 interface PartModelProps {
     part: Part;
     color: string;
 }
 
-// Sub-component for GLTF loading to adhere to Hook rules
-function GltfModel({ url, color, dims }: { url: string; color: string; dims: [number, number, number] }) {
-    const { scene } = useGLTF(url);
-    const cloned = useMemo(() => {
-        const c = scene.clone();
+// Generic Model Loader
+// Separate components for each format to ensure hooks are called unconditionally
+function StlModel({ url, color }: { url: string; color: string }) {
+    const [geometry, setGeometry] = useState<THREE.BufferGeometry | null>(null);
+    const [scale, setScale] = useState(1);
 
-        // Traverse to apply color if needed? 
-        // Usually custom models have textures. We might want to Tint them if selected?
-        // keeping original materials for now.
+    useEffect(() => {
+        console.log('[StlModel] Loading STL from:', url);
+        const loader = new STLLoader();
 
-        return c;
-    }, [scene]);
+        // 手动 fetch 以确保 arraybuffer 响应类型
+        fetch(url)
+            .then(res => {
+                console.log('[StlModel] Fetch response:', res.status, res.headers.get('content-type'));
+                return res.arrayBuffer();
+            })
+            .then(buffer => {
+                console.log('[StlModel] ArrayBuffer size:', buffer.byteLength);
+                const geom = loader.parse(buffer);
 
-    // Scaling Logic:
-    // If dims are provided, we should scale the model to fit?
-    // But we don't know the original size of the GLB.
-    // We can assume GLB is normalized or we use a bounding box to normalize?
+                // 计算边界框并自动缩放
+                geom.computeBoundingBox();
+                const bbox = geom.boundingBox;
+                if (bbox) {
+                    const size = new THREE.Vector3();
+                    bbox.getSize(size);
+                    const maxDim = Math.max(size.x, size.y, size.z);
 
-    // For P0 Custom Import: Just render as is (scale 1).
-    // Parametric Scaling for Custom Models is P1.
-    // (If user changes Dimensions inputs, we scale this group).
+                    // 如果模型太大(>10单位),自动缩放到 1 单位左右
+                    // STL 通常是毫米单位,所以除以 1000
+                    let autoScale = 1;
+                    if (maxDim > 10) {
+                        autoScale = 1 / maxDim; // 归一化到 1 单位
+                    }
 
-    return <primitive object={cloned} />;
+                    console.log('[StlModel] Bounding box size:', size, 'Auto scale:', autoScale);
+                    setScale(autoScale);
+                }
+
+                console.log('[StlModel] Geometry loaded:', geom);
+                setGeometry(geom);
+            })
+            .catch(err => console.error('STL Load Error:', err));
+
+        return () => {
+            geometry?.dispose();
+        };
+    }, [url]);
+
+    if (!geometry) return null;
+
+    return (
+        <mesh geometry={geometry} castShadow receiveShadow scale={scale}>
+            <meshStandardMaterial color={color} />
+        </mesh>
+    );
+}
+
+function ObjModel({ url, color }: { url: string; color: string }) {
+    const [object, setObject] = useState<THREE.Group | null>(null);
+    const [scale, setScale] = useState(1);
+
+    useEffect(() => {
+        const loader = new OBJLoader();
+
+        fetch(url)
+            .then(res => res.arrayBuffer())
+            .then(buffer => {
+                const text = new TextDecoder().decode(buffer);
+                const obj = loader.parse(text);
+                obj.traverse((child) => {
+                    if ((child as THREE.Mesh).isMesh) {
+                        (child as THREE.Mesh).material = new THREE.MeshStandardMaterial({ color });
+                    }
+                });
+
+                // 计算边界框并自动缩放
+                const bbox = new THREE.Box3().setFromObject(obj);
+                const size = new THREE.Vector3();
+                bbox.getSize(size);
+                const maxDim = Math.max(size.x, size.y, size.z);
+                if (maxDim > 10) {
+                    setScale(1 / maxDim);
+                }
+
+                setObject(obj);
+            })
+            .catch(err => console.error('OBJ Load Error:', err));
+    }, [url, color]);
+
+    if (!object) return null;
+    return <primitive object={object} scale={scale} />;
+}
+
+function FbxModel({ url, color }: { url: string; color: string }) {
+    const [object, setObject] = useState<THREE.Group | null>(null);
+    const [scale, setScale] = useState(0.01);
+
+    useEffect(() => {
+        const loader = new FBXLoader();
+
+        fetch(url)
+            .then(res => res.arrayBuffer())
+            .then(buffer => {
+                const fbx = loader.parse(buffer, '');
+                fbx.traverse((child) => {
+                    if ((child as THREE.Mesh).isMesh) {
+                        const mat = (child as THREE.Mesh).material as THREE.MeshStandardMaterial;
+                        if (!mat?.map) {
+                            (child as THREE.Mesh).material = new THREE.MeshStandardMaterial({ color });
+                        }
+                    }
+                });
+
+                // FBX 通常需要更小的缩放
+                const bbox = new THREE.Box3().setFromObject(fbx);
+                const size = new THREE.Vector3();
+                bbox.getSize(size);
+                const maxDim = Math.max(size.x, size.y, size.z);
+                if (maxDim > 10) {
+                    setScale(1 / maxDim);
+                } else {
+                    setScale(0.01); // FBX 默认缩放
+                }
+
+                setObject(fbx);
+            })
+            .catch(err => console.error('FBX Load Error:', err));
+    }, [url, color]);
+
+    if (!object) return null;
+    return <primitive object={object} scale={scale} />;
+}
+
+function GltfModel({ url, color }: { url: string; color: string }) {
+    const [object, setObject] = useState<THREE.Group | null>(null);
+
+    useEffect(() => {
+        // 对于 Blob URL,手动加载避免 useGLTF 的问题
+        if (url.startsWith('blob:')) {
+            fetch(url)
+                .then(res => res.arrayBuffer())
+                .then(buffer => {
+                    const loader = new GLTFLoader();
+                    loader.parse(buffer, '', (gltf: any) => {
+                        setObject(gltf.scene);
+                    }, (error: any) => {
+                        console.error('GLTF Load Error:', error);
+                    });
+                })
+                .catch(err => console.error('GLTF Fetch Error:', err));
+        } else {
+            // 对于普通 URL,直接使用 GLTFLoader.load
+            const loader = new GLTFLoader();
+            loader.load(url, (gltf: any) => {
+                setObject(gltf.scene);
+            }, undefined, (error: any) => {
+                console.error('GLTF Load Error:', error);
+            });
+        }
+    }, [url]);
+
+    if (!object) return null;
+    return <primitive object={object} />;
+}
+
+// Generic Model Dispatcher
+function GenericModel({ url, format, color }: { url: string; format: string; color: string }) {
+    console.log('[GenericModel] Loading:', { url, format, isBlobUrl: url.startsWith('blob:') });
+
+    if (format === 'stl') return <StlModel url={url} color={color} />;
+    if (format === 'obj') return <ObjModel url={url} color={color} />;
+    if (format === 'fbx') return <FbxModel url={url} color={color} />;
+    return <GltfModel url={url} color={color} />;
 }
 
 export default function PartModel({ part, color }: PartModelProps) {
@@ -61,7 +216,7 @@ export default function PartModel({ part, color }: PartModelProps) {
                 {/* But our store has 'dims', not 'scale'. */}
                 {/* For now, just render GltfModel inside a Scaled Group? */}
                 {/* Let's render 1:1 for now. */}
-                <GltfModel url={modelPath} color={color} dims={[length, width, height]} />
+                <GenericModel url={modelPath} format={specs?.modelFormat || 'glb'} color={color} />
 
                 {/* Visual Bounding Box if Selected? */}
                 {/* <boxHelper args={[undefined, 0xffff00]} /> */}

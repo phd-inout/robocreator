@@ -1,6 +1,6 @@
 "use client";
 
-import { MousePointer2, Move, RotateCw, Grid3x3, Maximize2 } from "lucide-react";
+import { MousePointer2, Move, RotateCw, Grid3x3, Maximize2, Eye, Ruler } from "lucide-react";
 import { useState } from "react";
 import { useDesignStore } from "@/store/useDesignStore";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -14,7 +14,9 @@ export default function CanvasToolbar() {
         parts,
         transformMode,
         setTransformMode,
-        selectPart
+        selectPart,
+        showFOV,
+        showDimensions
     } = useDesignStore();
 
     const selectedPart = parts.find(p => p.id === selectedPartId);
@@ -89,12 +91,37 @@ export default function CanvasToolbar() {
                 <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Toggle aria-label="Fullscreen">
-                                <Maximize2 size={18} />
+                            <Toggle
+                                aria-label="Toggle FOV"
+                                pressed={showFOV}
+                                onPressedChange={(pressed) => {
+                                    useDesignStore.setState({ showFOV: pressed });
+                                }}
+                            >
+                                <Eye size={18} />
                             </Toggle>
                         </TooltipTrigger>
                         <TooltipContent>
-                            <p>Fullscreen</p>
+                            <p>Show FOV Cones</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Toggle
+                                aria-label="Toggle Dimensions"
+                                pressed={showDimensions}
+                                onPressedChange={(pressed) => {
+                                    useDesignStore.setState({ showDimensions: pressed });
+                                }}
+                            >
+                                <Ruler size={18} />
+                            </Toggle>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>Show Dimensions</p>
                         </TooltipContent>
                     </Tooltip>
                 </TooltipProvider>

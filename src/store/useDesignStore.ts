@@ -11,6 +11,9 @@ export const useDesignStore = create<DesignState>()(
             environment: "indoor",
             ground: "smooth"
         },
+        showFOV: true,
+        showDimensions: true,
+        cameraView: 'perspective' as 'top' | 'front' | 'right' | 'back' | 'perspective',
 
         addPart: (part: Part) =>
             set((state) => {
@@ -64,6 +67,11 @@ export const useDesignStore = create<DesignState>()(
         setTransformMode: (mode) =>
             set((state) => {
                 state.transformMode = mode;
+            }),
+
+        setCameraView: (view: 'top' | 'front' | 'right' | 'back' | 'perspective') =>
+            set((state) => {
+                state.cameraView = view;
             }),
     }))
 );

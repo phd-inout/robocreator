@@ -69,28 +69,45 @@ export default function Sidebar({ components }: SidebarProps) {
                             <label className="cursor-pointer">
                                 <input
                                     type="file"
-                                    accept=".glb,.gltf"
+                                    accept=".glb,.gltf,.stl,.obj,.fbx"
                                     className="hidden"
                                     onChange={(e) => {
                                         const file = e.target.files?.[0];
                                         if (!file) return;
+
+                                        console.log('[Sidebar] File upload:', file.name);
+
+                                        // 检测文件格式
+                                        const fileName = file.name.toLowerCase();
+                                        let format: 'glb' | 'stl' | 'obj' | 'fbx' = 'glb';
+                                        if (fileName.endsWith('.stl')) format = 'stl';
+                                        else if (fileName.endsWith('.obj')) format = 'obj';
+                                        else if (fileName.endsWith('.fbx')) format = 'fbx';
+
+                                        console.log('[Sidebar] Format:', format);
 
                                         const url = URL.createObjectURL(file);
                                         addPart({
                                             id: `custom-${Date.now()}`,
                                             skuId: "CUSTOM_UPLOAD",
                                             name: { zh: file.name, en: file.name },
-                                            category: "CUSTOM",
+                                            category: "ACCESSORY",
                                             position: { x: 0, y: 0.5, z: 0 },
                                             rotation: { x: 0, y: 0, z: 0 },
-                                            specs: { dims: [1, 1, 1], weight: 1, sockets: [], type: 'accessory' },
+                                            specs: {
+                                                dims: [1, 1, 1],
+                                                weight: 1,
+                                                sockets: [],
+                                                type: 'accessory',
+                                                modelFormat: format
+                                            },
                                             modelRef: url,
                                             price: 0,
                                         });
                                     }}
                                 />
                                 <span className="text-[10px] bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded transition-colors flex items-center gap-1">
-                                    + GLB
+                                    + Model
                                 </span>
                             </label>
                         </div>

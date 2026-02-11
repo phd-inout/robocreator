@@ -10,6 +10,9 @@ import PartModel from "./PartModel";
 import { findNearestSocket } from "@/utils/snapping";
 import SocketVisualizer from "./SocketVisualizer";
 import { worldToLocal } from "@/utils/transforms";
+import FOVCone from "./FOVCone";
+import DimensionHelper from "./DimensionHelper";
+import { SensorSpecs } from "@/types/specs";
 
 interface DraggablePartProps {
     part: Part;
@@ -18,7 +21,7 @@ interface DraggablePartProps {
 }
 
 export default function DraggablePart({ part, onContextMenu, children }: DraggablePartProps) {
-    const { parts, updatePart, selectPart, selectedPartId, transformMode, reparentPart } = useDesignStore();
+    const { parts, updatePart, selectPart, selectedPartId, transformMode, reparentPart, showFOV, showDimensions } = useDesignStore();
     const [hovered, setHovered] = useState(false);
     const isSelected = selectedPartId === part.id;
     const [snapTarget, setSnapTarget] = useState<THREE.Vector3 | null>(null);
@@ -137,6 +140,16 @@ export default function DraggablePart({ part, onContextMenu, children }: Draggab
 
                 {/* Visual Sockets */}
                 <SocketVisualizer part={part} visible={isSelected || hovered} />
+
+                {/* FOV Cone for Sensors */}
+                {showFOV && part.category === 'SENSOR' && isSelected && (
+                    <FOVCone specs={part.specs as SensorSpecs} color="#4299e1" />
+                )}
+
+                {/* Dimension Helpers */}
+                {showDimensions && isSelected && (
+                    <DimensionHelper specs={part.specs} />
+                )}
 
                 {/* Render Children Recursively */}
                 {children}

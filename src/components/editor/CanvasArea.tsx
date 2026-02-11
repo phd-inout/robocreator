@@ -6,7 +6,8 @@ import { useDesignStore } from "@/store/useDesignStore";
 import DraggablePart from "./DraggablePart";
 import ContextMenu from "./ContextMenu";
 import CanvasToolbar from "./CanvasToolbar";
-import { useState } from "react";
+import { useState, Suspense } from "react";
+import CameraController from "./CameraController";
 
 export default function CanvasArea() {
     const { parts, removePart, selectPart, addPart, updatePart } = useDesignStore();
@@ -99,6 +100,7 @@ export default function CanvasArea() {
 
                 {/* Controls */}
                 <OrbitControls makeDefault />
+                <CameraController />
 
                 {/* Environment */}
                 <Environment preset="night" />
@@ -114,27 +116,29 @@ export default function CanvasArea() {
 
                 {/* Render Robot Parts */}
                 {/* Render Robot Parts Recursively */}
-                {parts
-                    .filter((p) => !p.parentId) // Start with root parts
-                    .map((rootPart) => {
-                        const renderPart = (partId: string) => {
-                            const part = parts.find((p) => p.id === partId);
-                            if (!part) return null;
+                <Suspense fallback={null}>
+                    {parts
+                        .filter((p) => !p.parentId) // Start with root parts
+                        .map((rootPart) => {
+                            const renderPart = (partId: string) => {
+                                const part = parts.find((p) => p.id === partId);
+                                if (!part) return null;
 
-                            const children = parts.filter((p) => p.parentId === partId);
+                                const children = parts.filter((p) => p.parentId === partId);
 
-                            return (
-                                <DraggablePart
-                                    key={part.id}
-                                    part={part}
-                                    onContextMenu={handleContextMenu}
-                                >
-                                    {children.map((child) => renderPart(child.id))}
-                                </DraggablePart>
-                            );
-                        };
-                        return renderPart(rootPart.id);
-                    })}
+                                return (
+                                    <DraggablePart
+                                        key={part.id}
+                                        part={part}
+                                        onContextMenu={handleContextMenu}
+                                    >
+                                        {children.map((child) => renderPart(child.id))}
+                                    </DraggablePart>
+                                );
+                            };
+                            return renderPart(rootPart.id);
+                        })}
+                </Suspense>
             </Canvas>
 
             {/* Context Menu */}

@@ -9,6 +9,7 @@ import { ComponentData } from "@/actions/catalog";
 import { MousePointer2, Move, Rotate3D, Scaling, Grid3X3, Settings2 } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useDesignStore } from "@/store/useDesignStore";
+import ViewCube from "@/components/editor/ViewCube";
 
 interface EditorClientProps {
     components: ComponentData[];
@@ -75,6 +76,9 @@ export default function EditorClient({ components }: EditorClientProps) {
                             <span className="absolute top-[-35px] left-[-5px] text-[8px] text-green-500">Y</span>
                         </div>
                     </div>
+
+                    {/* View Cube (Bottom-Right) */}
+                    <ViewCube />
                 </main>
 
                 {/* Right Properties Panel (Light) */}

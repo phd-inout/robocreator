@@ -46,6 +46,14 @@ export interface DesignState {
         ground: "smooth" | "rough";
     };
 
+    // Visual Aids
+    showFOV: boolean;
+    showDimensions: boolean;
+
+    // Camera View
+    cameraView: 'top' | 'front' | 'right' | 'back' | 'perspective';
+    setCameraView: (view: 'top' | 'front' | 'right' | 'back' | 'perspective') => void;
+
     addPart: (part: Part) => void;
     updatePart: (id: string, updates: Partial<Part>) => void;
     removePart: (id: string) => void;

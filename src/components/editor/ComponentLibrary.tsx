@@ -87,7 +87,7 @@ export default function ComponentLibrary({ components }: ComponentLibraryProps) 
                     <label className="cursor-pointer">
                         <input
                             type="file"
-                            accept=".glb,.gltf"
+                            accept=".glb,.gltf,.stl,.obj,.fbx"
                             className="hidden"
                             onChange={(e) => {
                                 const file = e.target.files?.[0];
@@ -108,7 +108,7 @@ export default function ComponentLibrary({ components }: ComponentLibraryProps) 
                             }}
                         />
                         <span className="text-[10px] bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded transition-colors">
-                            + Import GLB
+                            + Import Model
                         </span>
                     </label>
                 </div>
